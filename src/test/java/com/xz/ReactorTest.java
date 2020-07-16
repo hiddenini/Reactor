@@ -490,9 +490,47 @@ public class ReactorTest {
      */
     @Test
     public void testLog() {
-        Flux.range(1, 10)
+/*        Flux.range(1, 10)
                 .log()
-                .take(3).subscribe(System.out::println);
+                .take(3).subscribe(System.out::println);*/
+
+        /**
+         * 调用链
+         *  Flux.range 初始化Flux时 onAssembly(new FluxRange(start, count))
+         *
+         *  new FluxRange(start, count)     this.start = start;  long e = (long) start + count;  this.end = e;
+         *
+         *  Flux-->	public final Disposable subscribe(Consumer<? super T> consumer)
+         *
+         *  -->public final Disposable subscribe(
+         *                        @Nullable Consumer<? super T> consumer,
+         *            @Nullable Consumer<? super Throwable> errorConsumer,
+         *            @Nullable Runnable completeConsumer)
+         *
+         * 经过几层的subscribe的转换最后到了 Flux--> public final void subscribe(Subscriber<? super T> actual){
+         *              onLastAssembly(this).subscribe(Operators.toCoreSubscriber(actual));
+         * }
+         *
+         * -->FluxRange-->	public void subscribe(CoreSubscriber<? super Integer> actual){
+         *     actual.onSubscribe(new RangeSubscription(actual, st, en));
+         * }
+         *
+         * new RangeSubscription(actual, st, en)-->			this.actual = actual;   this.index = start; this.end = end;
+         *
+         * -->LambdaSubscriber.onSubscribe{    s.request(Long.MAX_VALUE);    }
+         *
+         * -->FluxRange.request{  fastPath();  }
+         *
+         * -->  for (long i = index; i != e; i++) <--a.onNext(在前面的循环中调用)  -->LambdaSubscriber.onNext-->   consumer.accept(x);  -->System.out.println(l);  System.out.println("被调用");
+         *
+         *
+         */
+
+        Flux.range(1, 10)
+                .subscribe((l) -> {
+                    System.out.println(l);
+                    System.out.println("被调用");
+                });
     }
 }
 
