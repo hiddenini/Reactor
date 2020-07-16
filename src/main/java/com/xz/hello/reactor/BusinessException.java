@@ -1,4 +1,4 @@
-package com.xz.hello.expection;
+package com.xz.hello.reactor;
 
 public class BusinessException extends Exception {
     private String message;
