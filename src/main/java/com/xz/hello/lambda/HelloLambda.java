@@ -1,6 +1,9 @@
 package com.xz.hello.lambda;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.*;
 
 public class HelloLambda {
@@ -190,6 +193,91 @@ public class HelloLambda {
         System.out.println("創建了對象" + function.apply("jack"));
     }
 
+    /**
+     * Type
+     */
+    public void type() {
+        //變量類型定義
+        IMath iMath = (x, y) -> x + y;
+        //數組定義
+        IMath[] iMaths = {(x, y) -> x + y};
+        //強轉
+        Object object = (IMath) (x, y) -> x + y;
+        //返回類型
+        createIMath();
+
+    }
+
+    public static IMath createIMath() {
+        return (x, y) -> x + y;
+    }
+
+    public void testType(IMath iMath) {
+
+    }
+
+    public void testType(IMath1 iMath) {
+
+    }
+
+
+    interface IMath {
+        int add(int x, int y);
+    }
+
+    interface IMath1 {
+        int add(int x, int y);
+    }
+
+    /**
+     * 變量引用
+     */
+    public static void var() {
+        /**
+         * java是傳值不是傳引用,所以lambda使用的變量一定要是final的
+         *
+         * 因爲list 和lambda的list都是指向的是new ArrayList<>()
+         *
+         * 如果在lambda之外修改了list,那麽在lambda中再去修改list返回的結果可能是不對的 或者說二義性
+         */
+        List<String> list = new ArrayList<>();
+        Consumer<String> consumer = s -> System.out.println(s + list);
+        consumer.accept("world");
+    }
+
+    /**
+     * 級聯表達式和柯里化
+     * <p>
+     * 柯里化:把多個參數的函數轉化為只有一個參數的函數
+     * <p>
+     * 柯里化的目的：使函數標準化
+     */
+    public static void cascade() {
+        Function<Integer, Function<Integer, Integer>> function = x -> y -> x + y;
+
+        System.out.println(function.apply(2).apply(3));
+
+        Function<Integer, Function<Integer, Function<Integer, Integer>>> function1 = x -> y -> z -> x + y + z;
+
+        System.out.println(function1.apply(2).apply(3).apply(5));
+
+        int nums[] = {2, 3, 4};
+        Function f = function1;
+        for (int i = 0; i < nums.length; i++) {
+            if (f instanceof Function) {
+                Object apply = f.apply(nums[i]);
+
+                if (apply instanceof Function) {
+                    f = (Function) apply;
+                } else {
+                    System.out.println("調用結束,結果爲:" + apply);
+                }
+            }
+        }
+
+    }
+
+
     public static void main(String[] args) {
         //character();
 
@@ -214,6 +302,16 @@ public class HelloLambda {
         nonStaticMethodRef();
 
         construct();
+
+        HelloLambda helloLambda = new HelloLambda();
+
+        /**
+         * 黨有二義性的時候，使用强轉解決
+         */
+        helloLambda.testType((IMath) (x, y) -> x + y);
+
+        cascade();
+
     }
 
 }
